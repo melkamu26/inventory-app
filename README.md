@@ -1,16 +1,14 @@
 # inclass15
 
-A new Flutter project.
+Inventory Management App
 
-## Getting Started
+This Flutter app uses Firebase Firestore to manage inventory items with full CRUD functionality in real time.
 
-This project is a starting point for a Flutter application.
+Enhanced Features Implemented
 
-A few resources to get you started if this is your first Flutter project:
+• Advanced Search & Filtering – Search items by name and filter by category.
+• Data Insights Dashboard – Includes total items, total inventory value, and out-of-stock items.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+How to Run the App
+	1.	Run flutter pub get to install dependencies.
+	2.	Run the app using flutter run or choose a device such as Chrome or Android.
