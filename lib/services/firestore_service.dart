@@ -2,70 +2,26 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/item.dart';
 
 class FirestoreService {
-  FirestoreService._();
-  static final FirestoreService instance = FirestoreService._();
+  final CollectionReference<Map<String, dynamic>> _col =
+      FirebaseFirestore.instance.collection('items');
 
-  final _col = FirebaseFirestore.instance.collection('items').withConverter(
-        fromFirestore: (snap, _) => Item.fromDoc(snap),
-        toFirestore: (item, _) => item.toMap(),
-      );
+  Stream<List<Item>> itemsStream() {
+    return _col.orderBy('createdAt', descending: true).snapshots().map(
+          (snap) => snap.docs.map((d) => Item.fromDoc(d)).toList(),
+        );
+  }
 
-  // Add
-  Future<void> addItem(Item item) => _col.add(item);
+  Future<String> addItem(Item item) async {
+    final ref = await _col.add(item.toMap());
+    return ref.id;
+  }
 
-  // Update
-  Future<void> updateItem(Item item) =>
-      _col.doc(item.id!).set(item, SetOptions(merge: true));
+  Future<void> updateItem(Item item) async {
+    if (item.id == null) return;
+    await _col.doc(item.id).update(item.toMap());
+  }
 
-  // Delete
-  Future<void> deleteItem(String id) => _col.doc(id).delete();
-
-  // Stream with filters
-  // Search: prefix match on name_lc
-  // Category: exact
-  // Price: min/max
-  Stream<List<Item>> itemsStream({
-    String search = '',
-    String category = 'All',
-    double? minPrice,
-    double? maxPrice,
-  }) {
-    Query<Item> q = _col;
-
-    // category filter
-    if (category != 'All') {
-      q = q.where('category', isEqualTo: category);
-    }
-
-    // price range filter
-    if (minPrice != null) {
-      q = q.where('price', isGreaterThanOrEqualTo: minPrice);
-    }
-    if (maxPrice != null) {
-      q = q.where('price', isLessThanOrEqualTo: maxPrice);
-    }
-    if (minPrice != null || maxPrice != null) {
-      q = q.orderBy('price'); // required when using price range
-    } else {
-      q = q.orderBy('createdAt', descending: true);
-    }
-
-    // name prefix search using name_lc bounds
-    final s = search.trim().toLowerCase();
-    if (s.isNotEmpty) {
-      // Firestore requires range on same field be ordered by same field
-      q = _col; // rebuild to ensure correct orderBy
-      if (category != 'All') q = q.where('category', isEqualTo: category);
-      if (minPrice != null) q = q.where('price', isGreaterThanOrEqualTo: minPrice);
-      if (maxPrice != null) q = q.where('price', isLessThanOrEqualTo: maxPrice);
-
-      // When mixing price range + name range, a composite index might be needed.
-      q = q
-          .where('name_lc', isGreaterThanOrEqualTo: s)
-          .where('name_lc', isLessThanOrEqualTo: '$s\uf8ff')
-          .orderBy('name_lc');
-    }
-
-    return q.snapshots().map((snap) => snap.docs.map((d) => d.data()).toList());
+  Future<void> deleteItem(String id) async {
+    await _col.doc(id).delete();
   }
 }

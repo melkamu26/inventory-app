@@ -8,9 +8,6 @@ class Item {
   final String category;
   final DateTime createdAt;
 
-  // lowercased name for search
-  String get nameLc => name.toLowerCase();
-
   Item({
     this.id,
     required this.name,
@@ -20,24 +17,28 @@ class Item {
     required this.createdAt,
   });
 
-  Map<String, dynamic> toMap() => {
-        'name': name,
-        'name_lc': nameLc,
-        'quantity': quantity,
-        'price': price,
-        'category': category,
-        'createdAt': Timestamp.fromDate(createdAt),
-      };
+  Map<String, dynamic> toMap() {
+    return {
+      'name': name,
+      'quantity': quantity,
+      'price': price,
+      'category': category,
+      'createdAt': Timestamp.fromDate(createdAt),
+    };
+  }
 
   factory Item.fromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
-    final data = doc.data()!;
+    final d = doc.data()!;
     return Item(
       id: doc.id,
-      name: (data['name'] ?? '') as String,
-      quantity: (data['quantity'] ?? 0) as int,
-      price: (data['price'] ?? 0.0).toDouble(),
-      category: (data['category'] ?? 'General') as String,
-      createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      name: (d['name'] ?? '') as String,
+      quantity: (d['quantity'] ?? 0) as int,
+      price: (d['price'] is int)
+          ? (d['price'] as int).toDouble()
+          : (d['price'] ?? 0.0) as double,
+      category: (d['category'] ?? '') as String,
+      createdAt:
+          (d['createdAt'] is Timestamp) ? (d['createdAt'] as Timestamp).toDate() : DateTime.now(),
     );
   }
 }
